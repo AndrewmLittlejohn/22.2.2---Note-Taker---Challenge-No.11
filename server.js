@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require ('path');
 const fs = require('fs');
+const uuid = require('./public/helpers/uuid');
+const notesDb = require('./db/db.json');
 
 const PORT = 3000;
 
@@ -9,6 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
 
 
 app.get('/', (req, res) =>
@@ -20,14 +23,13 @@ app.get('/notes', (req, res) =>
 );
 /* #region main - GET Request used to show details of previously created requests*/
 // GET request for reviews
-app.get('/api/notes', (req, res) => {
-  // Send a message to the client
-  res.json(`${req.method} request received to get reviews`);
+app.get('/api/notes', (req, res) => { 
+ 
+  res.json(notesDb); 
+  console.info(`${req.method} request received to get notes`);
+  console.log(notesDb);
 
-  // Log our request to the terminal
-  console.info(`${req.method} request received to get reviews`);
 });
-/* #endregion */ 
 
 // POST Request to add review
 app.post('/api/notes', (req, res) => {
@@ -35,12 +37,13 @@ app.post('/api/notes', (req, res) => {
   console.info(`${req.method} request received to add a note`);
 
   // Destructuring assignment for the items in req.body
-  const {title, text} = req.body;
+  const { title, text} = req.body;
 
   // If all the required properties are present
   if (title && text) {
     // Variable for the object we will save
     const newNote = {
+      id: uuid(),
       title,
       text,
     };
