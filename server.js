@@ -4,7 +4,7 @@ const fs = require('fs');
 const uuid = require('./public/helpers/uuid');
 const notesDb = require('./db/db.json');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const app = express();
 
@@ -83,8 +83,7 @@ app.delete('/api/notes/:id', (req, res) => {
 
   fs.readFile('./db/db.json', 'utf8', (err, data) => {
   if (err) {
-    console.log(err);
-    return res.status(500).json('Error reading the notes database');
+    return res.status(500).json('Error deleting');
   }
   const parsedNotes = JSON.parse(data);
   const noteIndex = parsedNotes.findIndex(note => note.id === noteId);
@@ -92,7 +91,6 @@ app.delete('/api/notes/:id', (req, res) => {
   if (noteIndex === -1) {
     return res.status(404).json('Note not found');
   }
-
   parsedNotes.splice(noteIndex, 1);
 
     fs.writeFile('./db/db.json', JSON.stringify(parsedNotes, null, 4), (err) => {
@@ -100,8 +98,7 @@ app.delete('/api/notes/:id', (req, res) => {
       console.error(err);
       return res.status(500).json('Error deleting the note');
     }
-
-      res.sendStatus(204); // Send a 'No Content' status to indicate successful deletion
+      res.sendStatus(204);
     });
   });
 });
