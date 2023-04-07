@@ -77,8 +77,34 @@ fs.readFile('./db/db.json', 'utf8', (err, data) => {
     res.status(500).json('Error - note not posted, please try again or contact IT Help Desk for for additional support');
   };
 });
+ 
+app.delete('/api/notes/:id', (req, res) => {
+  const noteId = req.params.id;
 
-  
+  fs.readFile('./db/db.json', 'utf8', (err, data) => {
+  if (err) {
+    console.log(err);
+    return res.status(500).json('Error reading the notes database');
+  }
+  const parsedNotes = JSON.parse(data);
+  const noteIndex = parsedNotes.findIndex(note => note.id === noteId);
+
+  if (noteIndex === -1) {
+    return res.status(404).json('Note not found');
+  }
+
+  parsedNotes.splice(noteIndex, 1);
+
+    fs.writeFile('./db/db.json', JSON.stringify(parsedNotes, null, 4), (err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json('Error deleting the note');
+    }
+
+      res.sendStatus(204); // Send a 'No Content' status to indicate successful deletion
+    });
+  });
+});
 
 app.listen(PORT, () =>
   console.log(`Example app listening at http://localhost:${PORT}`)

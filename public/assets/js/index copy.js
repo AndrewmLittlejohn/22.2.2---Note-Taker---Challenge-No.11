@@ -1,3 +1,9 @@
+// let noteTitle;
+// let noteText;
+// let saveNoteBtn;
+// let newNoteBtn;
+// let noteList;
+// let newNotes;
 
 
  let noteTitle = document.querySelector('.note-title');
@@ -5,6 +11,65 @@
  let saveNoteBtn = document.querySelector('.save-note');
  let newNoteBtn = document.querySelector('.new-note');
  let noteList = document.querySelectorAll('.list-container .list-group');
+//  let noteList = document.querySelector('.list-group');
+// let captured = JSON.parse(localStorage.getItem("Title,Note")) || [];
+
+// function storeSearch() {
+//   localStorage.setItem("Title,Note", JSON.stringify(captured));
+//   console.log(localStorage)
+// }
+
+// function renderNewNoteList () {
+
+//   if (window.location.pathname === '/notes') {
+//     newNotes.forEach((el) => (el.innerHTML = ''));
+//   }
+
+//   let newNoteListItems = [];
+
+//   const createLi = (text, delBtn = true) => {
+//     const liEl = document.createElement('li');
+//     liEl.classList.add('list-group-item');
+
+//     const spanEl = document.createElement('span');
+//     spanEl.classList.add('list-item-title');
+//     spanEl.innerText = text;
+//     spanEl.addEventListener('click', handleNoteView);
+
+//     liEl.append(spanEl);
+
+//     if (delBtn) {
+//       const delBtnEl = document.createElement('i');
+//       delBtnEl.classList.add(
+//         'fas',
+//         'fa-trash-alt',
+//         'float-right',
+//         'text-danger',
+//         'delete-note'
+//       );
+//       delBtnEl.addEventListener('click', handleNoteDelete);
+
+//       liEl.append(delBtnEl);
+//     }
+
+//     return liEl;
+//   };
+
+//   if(captured.lenth === 0){
+//     newNoteListItems.push(createLi('No new notes', false));
+//   }
+
+//   captured.forEach((note) =>{
+//     const li = createLi(note.title);
+//     li.dataset.note = JSON.stringify(note);
+
+//     newNoteListItems.push(li)
+//   });
+
+//   if (window.location.pathname === '/notes') {
+//     newNoteListItems.forEach((note) => newNotes[0].append(note));
+//   };
+// };
 
 // Show an element
 const show = (elem) => {
@@ -34,7 +99,7 @@ const saveNote = (note) =>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(note),
-  }).then((response) => response.json());
+  });
 
 const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
@@ -60,60 +125,31 @@ const renderActiveNote = () => {
   }
 };
 
-const handleNoteSave = async () => {
+const handleNoteSave = () => {
   const newNote = {
     title: noteTitle.value,
     text: noteText.value,
   };
-  const savedNote = await saveNote(newNote);
-  activeNote = savedNote;
-  getAndRenderNotes();
-  renderActiveNote();
+  saveNote(newNote).then(() => {
+    getAndRenderNotes();
+    renderActiveNote();
+  });
 };
 
 // Delete the clicked note
-// const handleNoteDelete = (e) => {
-//   // Prevents the click listener for the list from being called when the button inside of it is clicked
-//   e.stopPropagation();
-
-//   const note = e.target;
-//   const noteId = JSON.parse(note.parentElement.getAttribute('data-note')).id;
-//   console.log(noteId)
-//   const noteListItem = document.querySelector(`[data-note-id="${noteId}"]`);
-//   console.log(noteListItem)
-//     if (noteListItem) {
-//       noteListItem.style.display = 'none';
-//     }
-
-//   if (activeNote.id === noteId) {
-//     activeNote = {};
-//      }
-
-//   deleteNote(noteId).then(() => {
-//     getAndRenderNotes();
-//     renderActiveNote();
-//   });
-// };
-
 const handleNoteDelete = (e) => {
   // Prevents the click listener for the list from being called when the button inside of it is clicked
   e.stopPropagation();
 
   const note = e.target;
   const noteId = JSON.parse(note.parentElement.getAttribute('data-note')).id;
-console.log(noteId)
+
   if (activeNote.id === noteId) {
     activeNote = {};
   }
 
-  const noteListItem = document.querySelector(`[data-note-id="${noteId}"]`);
-  console.log(noteListItem)
-  if (noteListItem) {
-    noteListItem.style.display = 'none'; // Hide the note list item
-  }
-
   deleteNote(noteId).then(() => {
-    
+    getAndRenderNotes();
     renderActiveNote();
   });
 };
@@ -142,9 +178,13 @@ const handleRenderSaveBtn = () => {
 // Render the list of note titles
 const renderNoteList = async (notes) => {
 
+  let jsonNotes = await notes.json();
   if (window.location.pathname === '/notes') {
     noteList.forEach((el) => (el.innerHTML = ''));
   }
+
+
+
   let noteListItems = [];
 
   // Returns HTML element with or without a delete button
@@ -178,13 +218,14 @@ const renderNoteList = async (notes) => {
     return liEl;
   };
 
-  if (notes.length === 0) {
+  if (jsonNotes.length === 0) {
     noteListItems.push(createLi('No saved Notes', false));
   }
-  notes.forEach((note) => {
+
+  jsonNotes.forEach((note) => {
     const li = createLi(note.title);
     li.dataset.note = JSON.stringify(note);
-    li.setAttribute('data-note-id', note.id);
+
     noteListItems.push(li);
   });
 
@@ -194,10 +235,7 @@ const renderNoteList = async (notes) => {
 };
 
 // Gets notes from the db and renders them to the sidebar
-//const getAndRenderNotes = () => getNotes().then(renderNoteList);
-
-const getAndRenderNotes = () => getNotes().then((response) => response.json()).then(renderNoteList);
-
+const getAndRenderNotes = () => getNotes().then(renderNoteList);
 
 
   saveNoteBtn.addEventListener('click', handleNoteSave);
